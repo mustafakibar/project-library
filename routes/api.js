@@ -1,5 +1,7 @@
 'use strict';
 
+const { ObjectId } = require('mongodb');
+
 const Book = require('../db').Book;
 
 const getBooks = async (_req, res) => {
@@ -8,7 +10,7 @@ const getBooks = async (_req, res) => {
       return {
         _id: i._id,
         title: i.title,
-        commentCount: i.comments.length,
+        commentcount: i.comments.length,
       };
     });
     res.json(result);
@@ -18,7 +20,12 @@ const getBooks = async (_req, res) => {
 };
 
 const getBookById = async (req, res) => {
-  const { id } = req.params;
+  let id;
+  try {
+    id = new ObjectId(req.params.id);
+  } catch (error) {
+    id = new ObjectId();
+  }
 
   try {
     const book = await Book.findById(id);
@@ -45,7 +52,13 @@ const postBook = async (req, res) => {
 };
 
 const postCommentInBook = async (req, res) => {
-  const { id } = req.params;
+  let id;
+  try {
+    id = new ObjectId(req.params.id);
+  } catch (error) {
+    id = new ObjectId();
+  }
+
   const { comment } = req.body;
 
   if (!comment) {
@@ -57,8 +70,6 @@ const postCommentInBook = async (req, res) => {
       id,
       { $push: { comments: comment } },
       {
-        new: true,
-        upsert: true,
         returnDocument: 'after',
         useFindAndModify: false,
         select: '_id title comments',
@@ -81,7 +92,13 @@ const deleteBooks = async (_req, res) => {
 };
 
 const deleteBookById = async (req, res) => {
-  const { id } = req.params;
+  let id;
+  try {
+    id = new ObjectId(req.params.id);
+  } catch (error) {
+    id = new ObjectId();
+  }
+
   try {
     const book = await Book.findByIdAndRemove(id);
     !book ? res.json('no book exists') : res.json('delete successful');
